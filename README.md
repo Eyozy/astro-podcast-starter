@@ -187,7 +187,12 @@ xzsj/
 2. 在 Netlify 中导入项目
 3. 设置构建命令为 `npm run build`（推荐，RSS 同步交给 GitHub Actions）
 4. 设置发布目录为 `dist`
-5. 在 GitHub Secrets 中添加 `OPENROUTER_API_KEY`（如需 AI 功能）；如需自定义模型或 API 地址，再添加 `OPENROUTER_MODEL`、`OPENROUTER_API_URL`
+5. 在 GitHub Secrets 中添加 `OPENROUTER_API_KEY`（如需 AI 功能），详细操作步骤：
+   - 打开 GitHub 仓库页面，点击顶部的 **Settings** ⚙️
+   - 在左侧导航栏找到 **Security** 区域，点击 **Secrets and variables**，展开后选择 **Actions**
+   - 点击右侧绿色的 **New repository secret** 按钮
+   - **Name** 输入 `OPENROUTER_API_KEY`，**Secret** 输入你的 OpenRouter 密钥
+   - 点击 **Add secret** 保存
 
 > 如果你不使用 GitHub Actions，同步和构建可以改用 `npm run smart-build`。
 
