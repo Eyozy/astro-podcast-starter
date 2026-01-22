@@ -1,0 +1,591 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import EpisodeCard from "../components/EpisodeCard.astro";
+import episodes from "../data/episodes.json";
+import themes from "../data/themes.json";
+// 页面文案在 site.json 的 pages.episodes 中配置。
+import site from "../data/site.json";
+
+// 获取所有年份
+const years = [
+  ...new Set(episodes.map((ep) => new Date(ep.pubDate).getFullYear())),
+].sort((a, b) => b - a);
+
+// 获取所有标签并去重
+const allTags = [...new Set(episodes.flatMap((ep) => ep.tags || []))].sort();
+---
+
+<MainLayout title={site.pages.episodes.title}>
+  <div class="mb-8 md:mb-12 lg:mb-20">
+    <h1
+      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight"
+    >
+      {site.pages.episodes.headline}
+    </h1>
+    <p
+      class="text-base md:text-lg opacity-60 font-serif max-w-2xl leading-relaxed"
+    >
+      {site.pages.episodes.description}
+    </p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12 items-stretch lg:items-start">
+    <!-- 筛选与搜索工具栏 -->
+    <aside
+      class="w-full lg:w-64 xl:w-72 shrink-0 space-y-6 md:space-y-8 lg:space-y-10 z-10 lg:sticky lg:top-24"
+    >
+      <!-- 当前主题 (仅当有主题筛选时显示) -->
+      <div
+        id="active-theme-section"
+        class="hidden bg-orange-50 p-6 border border-orange-100 rounded-2xl relative group transition-all duration-300"
+      >
+        <h3
+          class="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-orange-800/60 mb-3 flex items-center gap-2"
+        >
+          <span class="w-4 h-px bg-orange-800/20"></span>
+          {site.pages.episodes.activeThemeLabel}
+        </h3>
+        <div class="flex items-center justify-between">
+          <h4 id="active-theme-title" class="text-lg font-bold text-[#2d2a26]">
+          </h4>
+          <button
+            id="clear-theme-btn"
+            class="text-orange-800/40 hover:text-orange-800 hover:bg-orange-800/5 p-2 rounded-full transition-all"
+            title={site.pages.episodes.clearThemeTitle}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="size-4 sm:size-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 搜索框 -->
+      <div
+        class="bg-white/50 lg:bg-transparent p-4 md:p-6 lg:p-0 border border-[#2d2a26]/5 lg:border-none rounded-2xl shadow-sm lg:shadow-none backdrop-blur-md lg:backdrop-blur-none"
+      >
+        <h3
+          class="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-orange-800/60 mb-4 md:mb-6 flex items-center gap-2"
+        >
+          <span class="w-4 h-px bg-orange-800/20"></span>
+          {site.pages.episodes.searchLabel}
+        </h3>
+        <div class="relative group">
+          <input
+            type="text"
+            id="search-input"
+            placeholder={site.pages.episodes.searchPlaceholder}
+            class="w-full px-4 md:px-5 py-3 md:py-4 bg-white border-2 border-[#2d2a26]/10 focus:border-orange-800/60 rounded-xl font-serif text-sm focus:outline-none focus:ring-4 focus:ring-orange-800/10 transition-all shadow-sm pr-10 md:pr-12 placeholder-[#2d2a26]/40 group-hover:border-[#2d2a26]/30"
+          />
+          <div
+            class="absolute right-0 top-0 bottom-0 flex items-center pr-3 md:pr-4"
+          >
+            <button
+              id="search-clear-btn"
+              class="text-[#2d2a26] opacity-20 hover:opacity-100 transition-opacity hidden"
+              title={site.pages.episodes.searchClearTitle}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-4 sm:size-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+            <div
+              id="search-icon"
+              class="text-[#2d2a26] opacity-20 group-focus-within:opacity-100 transition-opacity pointer-events-none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-4 sm:size-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p
+          id="search-count"
+          class="mt-3 md:mt-4 text-[10px] font-serif opacity-40 italic hidden items-center gap-2 px-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-3 sm:size-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          {site.pages.episodes.searchCountPrefix}{" "}
+          <span id="count-num" class="font-bold">0</span>{" "}
+          {site.pages.episodes.searchCountSuffix}
+        </p>
+      </div>
+
+      <!-- 按年份筛选 -->
+      <div
+        class="bg-white/50 lg:bg-transparent p-4 md:p-6 lg:p-0 border border-[#2d2a26]/5 lg:border-none rounded-2xl shadow-sm lg:shadow-none backdrop-blur-md lg:backdrop-blur-none lg:pt-8 lg:border-t lg:border-[#2d2a26]/5"
+      >
+        <h3
+          class="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-orange-800/60 mb-4 md:mb-6 flex items-center gap-2"
+        >
+          <span class="w-4 h-px bg-orange-800/20"></span>
+          {site.pages.episodes.yearFilterTitle}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="year-filter px-3 md:px-5 py-2 md:py-2.5 text-xs font-serif font-bold bg-[#2d2a26] text-white rounded-lg transition-all shadow-sm active:scale-95"
+            data-year="all"
+          >
+            {site.pages.episodes.allYearsLabel}
+          </button>
+          {
+            years.map((year) => (
+              <button
+                class="year-filter px-3 md:px-5 py-2 md:py-2.5 text-xs font-serif font-bold border border-[#2d2a26]/10 bg-white/80 text-[#2d2a26] hover:bg-white hover:border-[#2d2a26] transition-all rounded-lg shadow-sm active:scale-95"
+                data-year={year}
+              >
+                {year}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- 按标签筛选 -->
+      <div
+        class="bg-white/50 lg:bg-transparent p-4 md:p-6 lg:p-0 border border-[#2d2a26]/5 lg:border-none rounded-2xl shadow-sm lg:shadow-none backdrop-blur-md lg:backdrop-blur-none lg:pt-8 lg:border-t lg:border-[#2d2a26]/5"
+      >
+        <h3
+          class="text-[10px] font-serif font-bold uppercase tracking-[0.2em] text-orange-800/60 mb-4 md:mb-6 flex items-center justify-between"
+        >
+          <span class="flex items-center gap-2">
+            <span class="w-4 h-px bg-orange-800/20"></span>
+            {site.pages.episodes.tagFilterTitle}
+          </span>
+          <button
+            id="clear-tag-btn"
+            class="hidden text-[10px] font-normal normal-case tracking-normal text-orange-800/60 hover:text-orange-800 transition-colors underline"
+          >
+            {site.pages.episodes.clearTagLabel}
+          </button>
+        </h3>
+        <div id="tag-filters">
+          <div class="flex flex-wrap gap-2" id="tag-list">
+            {
+              allTags.map((tag, index) => (
+                <button
+                  class:list={[
+                    "tag-filter px-3 py-1.5 text-xs font-serif border border-[#2d2a26]/10 bg-white/80 text-[#2d2a26] hover:bg-white hover:border-[#2d2a26] transition-all rounded-lg shadow-sm active:scale-95",
+                    index >= 12
+                      ? "tag-extra hidden opacity-0 translate-y-1 pointer-events-none transition-all duration-300 ease-out"
+                      : "",
+                  ]}
+                  data-tag={tag}
+                >
+                  {tag}
+                </button>
+              ))
+            }
+          </div>
+          {allTags.length > 12 && (
+            <button
+              id="toggle-tags-btn"
+              class="mt-3 text-[10px] font-serif text-orange-800/60 hover:text-orange-800 transition-colors flex items-center gap-1"
+            >
+              <span id="toggle-tags-text">{site.pages.episodes.toggleTagsExpandLabel}</span>
+              <svg
+                id="toggle-tags-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-3 sm:size-3.5 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+    </aside>
+
+    <!-- 节目列表 -->
+    <div
+      class="flex-1 min-w-0 space-y-4 md:space-y-6 lg:space-y-8 w-full"
+      id="episodes-container"
+    >
+      {
+        episodes.map((episode) => (
+          <div
+            class="episode-item"
+            data-year={new Date(episode.pubDate).getFullYear()}
+            data-theme={episode.themeId}
+            data-tags={JSON.stringify(episode.tags || [])}
+            data-title={episode.title.toLowerCase()}
+            data-snippet={episode.contentSnippet.toLowerCase()}
+          >
+            <EpisodeCard episode={episode} />
+          </div>
+        ))
+      }
+      <!-- 无搜索结果提示 -->
+      <div
+        id="no-results"
+        class="hidden py-32 text-center border-2 border-dashed border-[#2d2a26]/5 rounded-2xl bg-white/20"
+      >
+        <p class="text-xl opacity-40 font-serif italic mb-2">
+          {site.pages.episodes.emptyTitle}
+        </p>
+        <p class="text-sm opacity-30 font-serif">
+          {site.pages.episodes.emptySubtitle}
+        </p>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script define:vars={{ themes }}>
+  window.themesData = themes;
+</script>
+
+<script define:vars={{ toggleTagsExpandLabel: site.pages.episodes.toggleTagsExpandLabel, toggleTagsCollapseLabel: site.pages.episodes.toggleTagsCollapseLabel }}>
+  function initSearch() {
+    const searchInput = document.getElementById("search-input");
+    const searchInputEl =
+      searchInput instanceof HTMLInputElement ? searchInput : null;
+    const filterButtons = document.querySelectorAll(".year-filter");
+    const episodeItems = document.querySelectorAll(".episode-item");
+    const noResults = document.getElementById("no-results");
+    const searchCount = document.getElementById("search-count");
+    const countNum = document.getElementById("count-num");
+    const clearBtn = document.getElementById("search-clear-btn");
+    const searchIcon = document.getElementById("search-icon");
+
+    // 主题筛选相关元素
+    const activeThemeSection = document.getElementById("active-theme-section");
+    const activeThemeTitle = document.getElementById("active-theme-title");
+    const clearThemeBtn = document.getElementById("clear-theme-btn");
+
+    // 标签筛选相关元素
+    const tagButtons = document.querySelectorAll(".tag-filter");
+    const clearTagBtn = document.getElementById("clear-tag-btn");
+    const toggleTagsBtn = document.getElementById("toggle-tags-btn");
+    const toggleTagsText = document.getElementById("toggle-tags-text");
+    const toggleTagsIcon = document.getElementById("toggle-tags-icon");
+    const extraTags = document.querySelectorAll(".tag-extra");
+    const state = {
+      currentYear: "all",
+      currentTheme: "all",
+      currentTag: "all",
+      currentQuery: "",
+      tagsExpanded: false,
+    };
+
+    // 样式常量
+    const activeClasses = ["bg-[#2d2a26]", "text-white", "hover:text-white"];
+    const inactiveClasses = [
+      "border",
+      "border-[#2d2a26]/10",
+      "bg-white/80",
+      "text-[#2d2a26]",
+      "hover:bg-white",
+      "hover:border-[#2d2a26]",
+    ];
+
+    // 标签样式常量
+    const tagActiveClasses = [
+      "bg-[#2d2a26]",
+      "text-white",
+      "hover:text-white",
+      "hover:bg-[#2d2a26]",
+      "border-[#2d2a26]",
+    ];
+    const tagInactiveClasses = [
+      "border-[#2d2a26]/10",
+      "bg-white/80",
+      "text-[#2d2a26]",
+      "hover:bg-white",
+      "hover:border-[#2d2a26]",
+    ];
+
+    const updateTagUI = () => {
+      // 显示/隐藏清除按钮
+      if (state.currentTag !== "all") {
+        clearTagBtn?.classList.remove("hidden");
+      } else {
+        clearTagBtn?.classList.add("hidden");
+      }
+    };
+
+    const updateSearchUI = () => {
+      if (state.currentQuery !== "") {
+        clearBtn?.classList.remove("hidden");
+        searchIcon?.classList.add("hidden");
+      } else {
+        clearBtn?.classList.add("hidden");
+        searchIcon?.classList.remove("hidden");
+      }
+    };
+
+    const updateThemeUI = () => {
+      const themesData = Array.isArray(window.themesData)
+        ? window.themesData
+        : [];
+      if (state.currentTheme !== "all" && themesData.length) {
+        const theme = themesData.find((t) => t.id === state.currentTheme);
+        if (theme) {
+          if (activeThemeSection) activeThemeSection.classList.remove("hidden");
+          if (activeThemeTitle) activeThemeTitle.textContent = theme.title;
+        } else {
+          // 主题ID无效时隐藏
+          if (activeThemeSection) activeThemeSection.classList.add("hidden");
+        }
+      } else {
+        if (activeThemeSection) activeThemeSection.classList.add("hidden");
+      }
+    };
+
+    const filterEpisodes = () => {
+      let visibleCount = 0;
+
+      episodeItems.forEach((item) => {
+        if (!(item instanceof HTMLElement)) return;
+        const year = item.getAttribute("data-year");
+        const theme = item.getAttribute("data-theme");
+        const title = item.getAttribute("data-title") || "";
+        const snippet = item.getAttribute("data-snippet") || "";
+        const tags = JSON.parse(item.getAttribute("data-tags") || "[]");
+
+        const yearMatch =
+          state.currentYear === "all" || year === state.currentYear;
+        const themeMatch =
+          state.currentTheme === "all" || theme === state.currentTheme;
+        const tagMatch =
+          state.currentTag === "all" || tags.includes(state.currentTag);
+        const queryMatch =
+          state.currentQuery === "" ||
+          title.includes(state.currentQuery) ||
+          snippet.includes(state.currentQuery);
+
+        if (yearMatch && themeMatch && tagMatch && queryMatch) {
+          item.style.display = "block";
+          visibleCount++;
+        } else {
+          item.style.display = "none";
+        }
+      });
+
+      // 更新计数
+      if (state.currentQuery !== "") {
+        searchCount?.classList.remove("hidden");
+        searchCount?.classList.add("flex");
+        if (countNum) countNum.textContent = visibleCount.toString();
+      } else {
+        searchCount?.classList.add("hidden");
+        searchCount?.classList.remove("flex");
+      }
+
+      // 更新空状态
+      if (visibleCount === 0) {
+        noResults?.classList.remove("hidden");
+      } else {
+        noResults?.classList.add("hidden");
+      }
+    };
+
+    const updateYearButtons = (activeButton) => {
+      filterButtons.forEach((btn) => {
+        btn.classList.remove(...activeClasses);
+        btn.classList.add(...inactiveClasses);
+      });
+      activeButton.classList.remove(...inactiveClasses);
+      activeButton.classList.add(...activeClasses);
+    };
+
+    const clearTagSelection = () => {
+      state.currentTag = "all";
+      tagButtons.forEach((btn) => {
+        btn.classList.remove(...tagActiveClasses);
+        btn.classList.add(...tagInactiveClasses);
+      });
+      updateTagUI();
+    };
+
+    searchInputEl?.addEventListener("input", () => {
+      state.currentQuery = searchInputEl.value.toLowerCase().trim();
+      updateSearchUI();
+      filterEpisodes();
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      if (searchInputEl) {
+        searchInputEl.value = "";
+        state.currentQuery = "";
+        updateSearchUI();
+        filterEpisodes();
+        searchInputEl.focus();
+      }
+    });
+
+    // 清除主题筛选
+    clearThemeBtn?.addEventListener("click", () => {
+      state.currentTheme = "all";
+
+      // 更新 URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("theme");
+      window.history.pushState({}, "", newUrl);
+
+      updateThemeUI();
+      filterEpisodes();
+    });
+
+    // 标签按钮点击事件
+    tagButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const tag = button.getAttribute("data-tag");
+
+        if (state.currentTag === tag) {
+          // 再次点击同一标签，取消筛选
+          state.currentTag = "all";
+          button.classList.remove(...tagActiveClasses);
+          button.classList.add(...tagInactiveClasses);
+        } else {
+          // 选中新标签
+          state.currentTag = tag || "all";
+
+          // 更新所有按钮样式
+          tagButtons.forEach((btn) => {
+            btn.classList.remove(...tagActiveClasses);
+            btn.classList.add(...tagInactiveClasses);
+          });
+          button.classList.add(...tagActiveClasses);
+          button.classList.remove(...tagInactiveClasses);
+        }
+
+        updateTagUI();
+        filterEpisodes();
+      });
+    });
+
+    // 清除标签筛选
+    clearTagBtn?.addEventListener("click", () => {
+      clearTagSelection();
+      filterEpisodes();
+    });
+
+    // 展开/收起标签
+    toggleTagsBtn?.addEventListener("click", () => {
+      state.tagsExpanded = !state.tagsExpanded;
+
+      if (state.tagsExpanded) {
+        extraTags.forEach((tag) => {
+          tag.classList.remove("hidden");
+          requestAnimationFrame(() => {
+            tag.classList.remove(
+              "opacity-0",
+              "translate-y-1",
+              "pointer-events-none",
+            );
+            tag.classList.add("opacity-100", "translate-y-0");
+          });
+        });
+        if (toggleTagsText) toggleTagsText.textContent = toggleTagsCollapseLabel;
+        toggleTagsIcon?.classList.add("rotate-180");
+      } else {
+        extraTags.forEach((tag) => {
+          tag.classList.add(
+            "opacity-0",
+            "translate-y-1",
+            "pointer-events-none",
+          );
+          tag.classList.remove("opacity-100", "translate-y-0");
+        });
+        if (toggleTagsText) toggleTagsText.textContent = toggleTagsExpandLabel;
+        toggleTagsIcon?.classList.remove("rotate-180");
+        window.setTimeout(() => {
+          extraTags.forEach((tag) => {
+            if (tag.classList.contains("opacity-0")) {
+              tag.classList.add("hidden");
+            }
+          });
+        }, 300);
+      }
+    });
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const year = button.getAttribute("data-year");
+        state.currentYear = year || "all";
+
+        // 更新按钮样式
+        updateYearButtons(button);
+
+        filterEpisodes();
+      });
+    });
+
+    // 处理 URL 查询参数
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // 处理主题参数
+    const themeParam = urlParams.get("theme");
+    if (themeParam) {
+      state.currentTheme = themeParam;
+      updateThemeUI();
+    }
+
+    const searchQuery = urlParams.get("search");
+    if (searchQuery) {
+      state.currentQuery = searchQuery.toLowerCase().trim();
+      if (searchInputEl) {
+        searchInputEl.value = searchQuery;
+      }
+      updateSearchUI();
+      filterEpisodes();
+    }
+
+    // 初始过滤
+    filterEpisodes();
+  }
+
+  // 支持 View Transitions
+  document.addEventListener("astro:page-load", initSearch);
+</script>

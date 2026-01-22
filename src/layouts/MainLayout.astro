@@ -1,0 +1,309 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/global.css";
+import Player from "../components/Player.astro";
+import ShareModal from "../components/ShareModal.astro";
+// 站点通用文案/链接集中在 site.json，模板只需改那里。
+import site from "../data/site.json";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const { brand, assets, navigation, footer } = site;
+const meta = brand.meta;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={meta.description} />
+    <meta name="keywords" content={meta.keywords} />
+    <meta name="author" content={meta.author} />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f5f2ed" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={meta.ogDescription} />
+    <meta property="og:image" content={assets.ogImage} />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:type" content="website" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:site" content={meta.twitter} />
+    <link rel="canonical" href={Astro.url} />
+    <ClientRouter />
+    <link rel="icon" type="image/png" href={assets.favicon} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} | {brand.name}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://dts-api.xiaoyuzhoufm.com" />
+    <link rel="preconnect" href="https://media.xyzcdn.net" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+  </head>
+  <body
+    class="bg-[#f5f2ed] text-[#2d2a26] font-serif min-h-screen flex flex-col"
+  >
+    <header
+      class="border-b border-[#2d2a26]/10 bg-white/50 backdrop-blur-md sticky top-0 z-40"
+    >
+      <nav
+        class="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6 flex justify-between items-center"
+      >
+        <a
+          href="/"
+          class="text-xl md:text-2xl font-bold tracking-tighter hover:text-orange-800 transition-colors"
+          >{brand.name}</a
+        >
+
+        <!-- 移动端菜单按钮 -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden p-2 hover:bg-orange-50 active:bg-orange-100 rounded-lg transition-colors"
+          aria-label={site.ui.openMenuLabel}
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-5 xs:size-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <!-- 桌面端导航 -->
+        <ul class="hidden md:flex space-x-10 font-serif font-bold text-sm tracking-widest uppercase">
+          {
+            navigation.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="hover:text-orange-700 transition-colors underline-offset-8 decoration-2"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </header>
+
+    <!-- 移动端全屏导航菜单 -->
+    <div
+      id="mobile-menu"
+      class="fixed inset-0 z-50 md:hidden opacity-0 pointer-events-none transition-opacity duration-200 overflow-hidden"
+      aria-hidden="true"
+    >
+      <!-- 背景遮罩 -->
+      <div
+        id="mobile-menu-overlay"
+        class="absolute inset-0 bg-[#2d2a26]/60 backdrop-blur-sm"
+      >
+      </div>
+
+      <!-- 菜单主体 -->
+      <div
+        id="mobile-menu-panel"
+        class="absolute top-0 right-0 h-full w-72 max-w-[80vw] bg-[#f5f2ed] shadow-2xl translate-x-full transition-transform duration-200"
+      >
+        <!-- 关闭按钮 -->
+        <div class="flex justify-end p-4 border-b border-[#2d2a26]/10">
+          <button
+            id="mobile-menu-close"
+            class="p-2 hover:bg-orange-50 active:bg-orange-100 rounded-lg transition-colors"
+            aria-label={site.ui.closeMenuLabel}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="size-5 xs:size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 导航链接 -->
+        <nav class="p-6">
+          <ul class="flex flex-col space-y-2 font-serif font-bold text-base tracking-widest uppercase">
+            {
+              navigation.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class="mobile-nav-link block py-4 px-4 hover:bg-orange-50 active:bg-orange-100 rounded-xl transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <!-- 底部品牌 -->
+        <div
+          class="absolute bottom-0 left-0 right-0 p-6 border-t border-[#2d2a26]/10"
+        >
+          <p class="text-xs font-serif opacity-40 text-center">
+            {brand.name} · EST. {brand.establishedYear}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <main class="grow max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16 w-full">
+      <slot />
+    </main>
+
+    <footer class="border-t border-[#2d2a26]/10 py-16 bg-white/50">
+      <div class="max-w-6xl mx-auto px-6">
+        <div
+          class="flex flex-col md:flex-row justify-between items-center md:items-end text-center md:text-left gap-8"
+        >
+          <div>
+            <h3 class="text-xl font-bold mb-4">{brand.name}</h3>
+            <p class="opacity-50 text-sm font-serif max-w-md leading-relaxed">
+              {footer.descriptionLine1}<br />{footer.descriptionLine2}
+            </p>
+          </div>
+          <div class="flex flex-col md:items-end gap-2">
+            <p class="opacity-30 text-[10px] font-serif">
+              &copy; {brand.establishedYear} - {new Date().getFullYear()} {brand.name}. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <button
+      id="back-to-top"
+      class="fixed bottom-24 sm:bottom-28 right-4 sm:right-8 z-40 w-10 h-10 sm:w-12 sm:h-12 bg-white text-[#2d2a26] rounded-full shadow-lg border border-[#2d2a26]/10 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 hover:bg-orange-50 hover:scale-110 active:scale-95 hover:shadow-xl translate-y-4 data-[visible=true]:opacity-100 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0"
+      aria-label={site.ui.backToTopLabel}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="size-4 sm:size-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+      </svg>
+    </button>
+
+    <script>
+      function initBackToTop() {
+        const btn = document.getElementById("back-to-top");
+        if (!btn) return;
+
+        // 滚动一定距离后显示按钮
+        const toggleBtn = () => {
+          btn.dataset.visible = window.scrollY > 300 ? "true" : "false";
+        };
+
+        if (!btn.dataset.bound) {
+          // 避免路由切换重复绑定事件
+          window.addEventListener("scroll", toggleBtn, { passive: true });
+          btn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+          btn.dataset.bound = "true";
+        }
+
+        toggleBtn();
+      }
+
+      function initMobileMenu() {
+        const btn = document.getElementById("mobile-menu-btn");
+        const menu = document.getElementById("mobile-menu");
+        const panel = document.getElementById("mobile-menu-panel");
+        const closeBtn = document.getElementById("mobile-menu-close");
+        const overlay = document.getElementById("mobile-menu-overlay");
+        if (!btn || !menu || !panel) return;
+
+        const setMenuOpen = (open: boolean) => {
+          menu.classList.toggle("opacity-0", !open);
+          menu.classList.toggle("pointer-events-none", !open);
+          menu.classList.toggle("opacity-100", open);
+          menu.classList.toggle("pointer-events-auto", open);
+          panel.classList.toggle("translate-x-full", !open);
+          panel.classList.toggle("translate-x-0", open);
+          document.body.style.overflow = open ? "hidden" : "";
+          btn.setAttribute("aria-expanded", String(open));
+          menu.setAttribute("aria-hidden", String(!open));
+        };
+
+        if (!menu.dataset.bound) {
+          // 避免路由切换重复绑定事件
+          btn.addEventListener("click", () => setMenuOpen(true));
+          closeBtn?.addEventListener("click", () => setMenuOpen(false));
+          overlay?.addEventListener("click", () => setMenuOpen(false));
+
+          // 点击菜单项后关闭菜单
+          menu.querySelectorAll(".mobile-nav-link").forEach((link) => {
+            link.addEventListener("click", () => setMenuOpen(false));
+          });
+
+          // ESC 键关闭菜单
+          document.addEventListener("keydown", (e) => {
+            if (
+              e.key === "Escape" &&
+              !menu.classList.contains("pointer-events-none")
+            ) {
+              setMenuOpen(false);
+            }
+          });
+          menu.dataset.bound = "true";
+        }
+      }
+
+      document.addEventListener("astro:page-load", () => {
+        initBackToTop();
+        initMobileMenu();
+      });
+    </script>
+
+    <Player />
+    <ShareModal />
+  </body>
+</html>
+
+<style is:global>
+  html,
+  body {
+    font-family: "Noto Serif SC", serif;
+  }
+</style>

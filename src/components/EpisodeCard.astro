@@ -1,0 +1,331 @@
+---
+import site from "../data/site.json";
+
+const { episode, compact = false } = Astro.props;
+
+const formattedDate = new Date(episode.pubDate).toLocaleDateString("zh-CN", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const fileSize = episode.enclosure?.length
+  ? (parseInt(episode.enclosure.length) / (1024 * 1024)).toFixed(1) + " MB"
+  : site.ui.unknownSizeLabel;
+
+const coverImage = episode.itunes?.image || site.assets.defaultCover;
+const episodeNumber =
+  episode.itunes?.episode || site.ui.episodeNumberFallbackLabel;
+const episodeNumberLabel = `${site.ui.episodeNumberPrefix} ${episodeNumber}`;
+---
+
+<div
+  class="w-full bg-white border border-[#2d2a26]/5 shadow-sm hover:shadow-md transition-all group relative rounded-2xl overflow-hidden flex flex-col"
+  data-episode-card
+  data-compact={compact ? "true" : "false"}
+>
+  <!-- 主内容区：图片 + 信息 -->
+    <div
+      class:list={[
+        "flex gap-3 sm:gap-4 p-3 sm:p-4 items-stretch",
+        compact ? "items-stretch" : "md:items-start",
+      ]}
+    >
+    <!-- 封面图：小屏幕自适应，大屏幕固定尺寸 -->
+    <div
+      class:list={[
+        "shrink-0 flex-none self-start overflow-hidden bg-[#f0ede8] border border-[#2d2a26]/5 shadow-inner rounded-xl aspect-square",
+        compact
+          ? "w-[80px] sm:w-[88px] md:w-[104px] lg:w-[112px]"
+          : "w-[clamp(64px,24vw,88px)] sm:w-24 md:w-32 lg:w-36",
+      ]}
+      data-card-cover
+    >
+      <img
+        src={coverImage}
+        alt={episode.title}
+        loading="lazy"
+        decoding="async"
+        class="size-full object-cover transition-transform duration-500 group-hover:scale-110"
+      />
+    </div>
+
+    <!-- 右侧信息 -->
+    <div class="grow flex flex-col justify-between min-w-0 py-0.5" data-card-content>
+      <div>
+        <!-- 期号 + 日期 -->
+        <div
+          class:list={[
+            "flex flex-wrap items-center gap-2",
+            compact ? "mb-1.5" : "mb-2",
+          ]}
+        >
+          <span
+            class="text-[10px] font-serif font-bold uppercase tracking-widest text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md"
+          >
+            {episodeNumberLabel}
+          </span>
+          <span class="text-[10px] font-serif opacity-40">{formattedDate}</span>
+        </div>
+
+        <!-- 标题（最多2行） -->
+        <h3
+          class:list={[
+            "font-bold group-hover:text-orange-800 transition-colors leading-snug",
+            compact
+              ? "text-sm line-clamp-1 md:text-base md:line-clamp-2 mb-0.5"
+              : "text-sm line-clamp-1 md:text-lg md:line-clamp-2 mb-1.5 md:mb-2",
+          ]}
+          data-card-title
+          data-min-scale={compact ? "1" : "0.75"}
+          data-min-font={compact ? "12" : "12"}
+        >
+          <a href={`/episodes/${episode.id}`}>{episode.title}</a>
+        </h3>
+
+        <!-- 描述（仅完整版显示） -->
+        {
+          episode.contentSnippet && (
+            <p
+              class:list={[
+                "opacity-60 font-serif leading-relaxed",
+                compact
+                  ? "text-[11px] leading-snug line-clamp-1 mb-1"
+                  : "text-[11px] leading-snug line-clamp-1 sm:text-xs sm:leading-relaxed sm:line-clamp-1 md:text-sm md:line-clamp-2 mb-1.5",
+              ]}
+            >
+              {episode.contentSnippet}
+            </p>
+          )
+        }
+      </div>
+
+      <!-- 标签 -->
+      {
+        episode.tags && episode.tags.length > 0 && (
+          <div
+            class:list={[
+              "hidden sm:flex",
+              compact ? "gap-1 flex-nowrap overflow-hidden" : "gap-1.5 flex-wrap",
+            ]}
+          >
+            {episode.tags.slice(0, compact ? 2 : 3).map((tag: string, index: number) => (
+              <span
+                class:list={[
+                  "text-[10px] font-serif px-2 py-0.5 bg-[#f5f2ed] text-[#2d2a26]/60 rounded-md border border-[#2d2a26]/5",
+                  compact ? "inline-flex whitespace-nowrap max-w-[96px] truncate" : index > 1 ? "hidden md:inline-flex" : "inline-flex",
+                ]}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div
+    class="flex items-center justify-between gap-2 flex-nowrap px-3 sm:px-4 py-3 border-t border-[#2d2a26]/5 bg-[#fafaf9]"
+  >
+    <div class="flex items-center gap-x-2 text-[10px] sm:text-[11px] font-serif opacity-50 whitespace-nowrap">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="size-3.5 sm:size-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>{episode.itunes?.duration || site.ui.unknownDurationLabel}</span>
+      <span class="w-1 h-1 bg-current rounded-full opacity-30 mx-1"></span>
+      <span>{fileSize}</span>
+    </div>
+
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <a
+        href={episode.enclosure?.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="download-button p-1.5 text-[#2d2a26] opacity-40 hover:opacity-100 hover:bg-[#2d2a26]/5 rounded-lg transition-all"
+        title={site.ui.downloadLabel}
+        data-filename={`${episode.title}.m4a`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-4 sm:size-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+          ></path>
+        </svg>
+      </a>
+      <button
+        class="share-button p-1.5 text-[#2d2a26] opacity-40 hover:opacity-100 hover:bg-[#2d2a26]/5 rounded-lg transition-all"
+        title={site.ui.shareLabel}
+        data-title={episode.title}
+        data-audio={episode.enclosure?.url}
+        data-cover={coverImage}
+        data-snippet={episode.contentSnippet}
+        data-duration={episode.itunes?.duration || "00:00:00"}
+        data-id={episode.id}
+        data-link={episode.link}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-4 sm:size-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+          ></path>
+        </svg>
+      </button>
+
+      <button
+        class="play-button flex items-center gap-1 px-2.5 py-1.5 sm:gap-1.5 sm:px-3 sm:py-1.5 bg-[#2d2a26] text-white text-[10px] font-serif font-bold uppercase tracking-widest hover:bg-orange-800 transition-all rounded-lg shadow-sm hover:shadow-md active:scale-95"
+        data-title={episode.title}
+        data-audio={episode.enclosure?.url}
+        data-cover={coverImage}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-2.5 sm:size-3 translate-x-0.5"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M7 4.406c0-.853.947-1.354 1.649-.865l10.211 7.112c.621.432.621 1.34 0 1.772l-10.211 7.112c-.702.489-1.649-.012-1.649-.865V4.406z"
+          ></path>
+        </svg>
+        <span>{site.ui.playLabel}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const initEpisodeCardTitleFit = () => {
+    const win = window as any;
+    if (win.__episodeCardTitleFitInitialized) return;
+    win.__episodeCardTitleFitInitialized = true;
+
+    const SELECTORS = {
+      card: "[data-episode-card]",
+      title: "[data-card-title]",
+      content: "[data-card-content]",
+      cover: "[data-card-cover]",
+    };
+    const MIN_WIDTH = 640;
+    const RESIZE_DEBOUNCE_MS = 120;
+
+    const resetCardLayout = (card: Element) => {
+      const title = card.querySelector(SELECTORS.title) as HTMLElement | null;
+      if (title) title.style.removeProperty("font-size");
+      const content = card.querySelector(SELECTORS.content) as HTMLElement | null;
+      if (content) {
+        content.style.removeProperty("min-height");
+        content.style.removeProperty("max-height");
+        content.style.removeProperty("height");
+        content.style.removeProperty("overflow");
+      }
+    };
+
+    const fitCards = () => {
+      const allCards = Array.from(document.querySelectorAll(SELECTORS.card));
+      allCards.forEach(resetCardLayout);
+
+      // 移动端不做标题缩放，保持可读性
+      if (window.innerWidth < MIN_WIDTH) return;
+
+      const cards = allCards.filter((card) => card.offsetParent !== null);
+      let minSize = Number.POSITIVE_INFINITY;
+      const titles: HTMLElement[] = [];
+
+      cards.forEach((card) => {
+        const cover = card.querySelector(SELECTORS.cover) as HTMLElement | null;
+        const content = card.querySelector(SELECTORS.content) as HTMLElement | null;
+        const title = card.querySelector(SELECTORS.title) as HTMLElement | null;
+        if (!cover || !content || !title) return;
+
+        const coverHeight = cover.getBoundingClientRect().height;
+        if (!coverHeight) return;
+
+        const isCompact = card.getAttribute("data-compact") === "true";
+        content.style.minHeight = `${coverHeight}px`;
+
+        if (isCompact) return;
+
+        let computed = window.getComputedStyle(title);
+        let fontSize = parseFloat(computed.fontSize);
+        const minScale = parseFloat(title.dataset.minScale || "0.75");
+        const minFont = parseFloat(title.dataset.minFont || "12");
+        const minFontSize = Math.max(fontSize * minScale, minFont);
+
+        while (fontSize > minFontSize && content.scrollHeight > coverHeight + 1) {
+          fontSize -= 1;
+          title.style.fontSize = `${fontSize}px`;
+          computed = window.getComputedStyle(title);
+        }
+
+        titles.push(title);
+        minSize = Math.min(minSize, fontSize);
+      });
+
+      if (!Number.isFinite(minSize)) return;
+      titles.forEach((title) => {
+        title.style.fontSize = `${minSize}px`;
+      });
+    };
+
+    let resizeTimer: number | undefined;
+    const handleResize = () => {
+      if (resizeTimer) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        fitCards();
+      }, RESIZE_DEBOUNCE_MS);
+    };
+
+    const run = () => {
+      fitCards();
+      if ("fonts" in document) {
+        (document as Document & { fonts?: { ready: Promise<void> } }).fonts?.ready
+          .then(() => {
+            fitCards();
+          })
+          .catch(() => {});
+      }
+      window.removeEventListener("resize", handleResize);
+      window.addEventListener("resize", handleResize, { passive: true });
+    };
+
+    const handleFitEvent = () => run();
+
+    run();
+    document.addEventListener("astro:page-load", run);
+    window.addEventListener("episode-card:fit", handleFitEvent);
+    document.addEventListener("astro:before-swap", () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("episode-card:fit", handleFitEvent);
+    });
+  };
+
+  initEpisodeCardTitleFit();
+</script>

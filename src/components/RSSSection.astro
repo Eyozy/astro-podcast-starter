@@ -1,0 +1,99 @@
+---
+// 订阅平台链接与二维码都在 site.json 中维护。
+import site from "../data/site.json";
+---
+
+<section
+  class="mb-20 sm:mb-24 bg-white/40 border border-[#2d2a26]/5 p-6 sm:p-8 md:p-12 relative overflow-hidden rounded-2xl"
+>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+    <div class="space-y-5 sm:space-y-6">
+      <h2 class="text-2xl sm:text-3xl font-bold">{site.sections.rssTitle}</h2>
+      <p class="text-sm opacity-60 leading-relaxed font-serif max-w-sm">
+        {site.sections.rssDescription}
+      </p>
+      <div class="flex flex-wrap gap-4 sm:gap-6 pt-3 sm:pt-4">
+        <a
+          href={site.podcast.appleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 text-xs font-serif font-bold uppercase tracking-widest hover:text-orange-700 transition-colors"
+        >
+          <svg viewBox="0 0 24 24" class="size-4 sm:size-5" fill="currentColor">
+            <path
+              d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
+            ></path>
+          </svg>
+          {site.sections.rssLabels.apple}
+        </a>
+        <a
+          href={site.podcast.rssUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 text-xs font-serif font-bold uppercase tracking-widest hover:text-orange-700 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-4 sm:size-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"
+            ></path>
+          </svg>
+          {site.sections.rssLabels.rss}
+        </a>
+        <a
+          href={site.podcast.xiaoyuzhouUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 text-xs font-serif font-bold uppercase tracking-widest hover:text-orange-700 transition-colors"
+        >
+          <span>{site.sections.rssLabels.xiaoyuzhou}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="relative flex justify-center md:justify-end">
+      <div class="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6">
+        <div class="text-center">
+          <div
+            class="bg-white p-3 sm:p-4 shadow-sm border border-[#2d2a26]/5 w-[clamp(120px,44vw,160px)] rounded-2xl"
+          >
+            <div
+              class="aspect-square bg-[#f0ede8] mb-3 flex items-center justify-center border border-[#2d2a26]/5 bg-cover bg-center rounded-lg"
+              style={`background-image: url('${site.podcast.xiaoyuzhouQr}')`}
+            >
+            </div>
+            <p
+              class="text-[10px] font-serif opacity-40 uppercase tracking-widest font-bold"
+            >
+              {site.sections.rssLabels.xiaoyuzhou}
+            </p>
+          </div>
+        </div>
+        <div class="text-center">
+          <div
+            class="bg-white p-3 sm:p-4 shadow-sm border border-[#2d2a26]/5 w-[clamp(120px,44vw,160px)] rounded-2xl"
+          >
+            <div
+              class="aspect-square bg-[#f0ede8] mb-3 flex items-center justify-center border border-[#2d2a26]/5 bg-cover bg-center rounded-lg"
+              style={`background-image: url('${site.podcast.wechatQr}')`}
+            >
+            </div>
+            <p
+              class="text-[10px] font-serif opacity-40 uppercase tracking-widest font-bold"
+            >
+              {site.sections.rssLabels.wechat}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

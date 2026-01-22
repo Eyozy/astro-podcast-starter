@@ -1,0 +1,223 @@
+---
+import episodes from "../data/episodes.json";
+// 首页文案在 site.json 的 hero 字段中配置。
+import site from "../data/site.json";
+
+const latestEpisode = episodes[0];
+const coverImage = latestEpisode.itunes?.image || site.assets.defaultCover;
+const formattedDate = new Date(latestEpisode.pubDate).toLocaleDateString("zh-CN");
+---
+
+<!-- Hero 主区域 -->
+<section class="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center mb-12 lg:mb-24 px-3 sm:px-0">
+  <!-- 左侧：标题和 CTA -->
+  <div class="space-y-3 sm:space-y-4 md:space-y-6 pt-2 sm:pt-4 lg:pt-8">
+    <h1 class="text-[clamp(1.8rem,4vw,4.5rem)] font-bold leading-[1.15]">
+      {site.hero.titlePrefix}<br class="hidden lg:block" />
+      <span class="italic text-orange-700">{site.hero.titleHighlight}</span>{site.hero.titleSuffix}
+    </h1>
+    <p class="text-sm sm:text-base md:text-xl opacity-80 leading-relaxed font-serif">
+      {site.hero.description}
+    </p>
+    <div class="flex flex-wrap gap-2.5 sm:gap-3 pt-2 md:pt-4">
+      <!-- 小屏幕：收听最新一期按钮 -->
+      <button
+        class="lg:hidden play-button inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 bg-[#2d2a26] text-white text-xs sm:text-sm font-serif hover:bg-orange-800 transition-colors rounded-lg shadow-sm"
+        data-title={latestEpisode.title}
+        data-audio={latestEpisode.enclosure?.url}
+        data-cover={coverImage}
+        aria-label={site.ui.playLatestAriaLabel}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-4 sm:size-5"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M7 4.406c0-.853.947-1.354 1.649-.865l10.211 7.112c.621.432.621 1.34 0 1.772l-10.211 7.112c-.702.489-1.649-.012-1.649-.865V4.406z"
+          ></path>
+        </svg>
+        {site.hero.cta.listenLatestLabel}
+      </button>
+      <a
+        href="/episodes"
+        class="inline-flex items-center px-5 py-2.5 bg-[#2d2a26] text-white text-sm font-serif hover:bg-orange-800 transition-colors rounded-lg shadow-sm max-lg:hidden"
+      >
+        {site.hero.cta.browseAllDesktopLabel}
+      </a>
+      <a
+        href="/episodes"
+        class="lg:hidden inline-flex items-center px-4 py-2 sm:px-5 sm:py-2.5 border border-[#2d2a26] text-xs sm:text-sm font-serif hover:bg-[#2d2a26] hover:text-white transition-all rounded-lg"
+      >
+        {site.hero.cta.browseAllMobileLabel}
+      </a>
+      <a
+        href="/about"
+        class="inline-flex items-center px-5 py-2.5 border border-[#2d2a26] text-sm font-serif hover:bg-[#2d2a26] hover:text-white transition-all rounded-lg max-lg:hidden"
+      >
+        {site.hero.cta.learnMoreLabel}
+      </a>
+    </div>
+  </div>
+
+  <!-- 右侧：最新剧集卡片（仅大屏幕显示） -->
+  <div class="hidden lg:block">
+    <div
+      class="bg-white p-5 md:p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] border border-[#2d2a26]/5 rounded-2xl overflow-hidden hover:shadow-[0_30px_60px_-12px_rgba(0,0,0,0.12)] transition-shadow group"
+    >
+      <div class="flex items-center space-x-2 mb-4">
+        <span
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-bold uppercase tracking-widest border border-orange-100"
+        >
+          <span class="size-2 bg-orange-600 rounded-full animate-pulse"></span>
+          <span>{site.sections.recentTitle}</span>
+        </span>
+      </div>
+
+      <div class="flex gap-4 items-start">
+        <div
+          class="size-24 shrink-0 bg-[#f0ede8] rounded-xl overflow-hidden relative shadow-inner border border-black/5 aspect-square"
+        >
+          <img
+            src={coverImage}
+            alt={latestEpisode.title}
+            class="w-full h-full object-cover"
+          />
+        </div>
+
+        <div class="grow min-w-0 flex flex-col gap-2">
+          <div>
+            <h3
+              class="text-lg font-bold leading-tight line-clamp-2 group-hover:text-orange-800 transition-colors"
+            >
+              <a href={`/episodes/${latestEpisode.id}`}>
+                {latestEpisode.title}
+              </a>
+            </h3>
+            <div class="flex flex-wrap items-center gap-2 text-xs opacity-50 font-serif italic mt-1">
+              <span>{formattedDate}</span>
+              {latestEpisode.itunes?.duration && (
+                <span class="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="size-3 sm:size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"></path>
+                  </svg>
+                  {latestEpisode.itunes.duration}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-1">
+            <button
+              class="play-button flex items-center gap-1.5 px-3 py-1.5 bg-[#2d2a26] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-orange-800 transition-colors font-serif rounded-lg shadow-sm"
+              data-title={latestEpisode.title}
+              data-audio={latestEpisode.enclosure?.url}
+              data-cover={coverImage}
+              aria-label={site.ui.playEpisodeAriaLabel}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-3 sm:size-3.5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M7 4.406c0-.853.947-1.354 1.649-.865l10.211 7.112c.621.432.621 1.34 0 1.772l-10.211 7.112c-.702.489-1.649-.012-1.649-.865V4.406z"
+                ></path>
+              </svg>
+              {site.ui.playLabel}
+            </button>
+            <a
+              href={`/episodes/${latestEpisode.id}`}
+              class="inline-flex items-center px-3 py-1.5 border border-[#2d2a26]/20 text-[#2d2a26] text-[10px] font-bold uppercase tracking-widest hover:border-[#2d2a26] hover:bg-[#2d2a26] hover:text-white transition-all font-serif rounded-lg"
+            >
+              {site.ui.detailLabel}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 最新剧集卡片（小屏幕独立区块） -->
+<section class="lg:hidden mb-12 max-w-lg mx-auto px-3">
+  <div
+    class="bg-white p-4 sm:p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] border border-[#2d2a26]/5 rounded-2xl overflow-hidden hover:shadow-[0_30px_60px_-12px_rgba(0,0,0,0.12)] transition-shadow group"
+  >
+    <div class="flex items-center space-x-2 mb-4">
+      <span
+      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 text-[11px] font-bold uppercase tracking-widest border border-orange-100"
+      >
+        <span class="size-2 bg-orange-600 rounded-full animate-pulse"></span>
+        <span>{site.sections.recentTitle}</span>
+      </span>
+    </div>
+
+    <div class="flex gap-3 sm:gap-4 items-start">
+      <div
+        class="shrink-0 bg-[#f0ede8] rounded-xl overflow-hidden relative shadow-inner border border-black/5 aspect-square w-[clamp(72px,26vw,96px)] sm:w-20"
+      >
+        <img
+          src={coverImage}
+          alt={latestEpisode.title}
+          class="w-full h-full object-cover"
+        />
+      </div>
+
+      <div class="grow min-w-0 flex flex-col justify-between gap-2">
+        <div>
+          <h3
+            class="text-sm sm:text-base font-bold leading-tight line-clamp-2 group-hover:text-orange-800 transition-colors"
+          >
+            <a href={`/episodes/${latestEpisode.id}`}>
+              {latestEpisode.title}
+            </a>
+          </h3>
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-xs opacity-50 font-serif italic mt-1">
+            <span>{formattedDate}</span>
+            {latestEpisode.itunes?.duration && (
+              <span class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-3 sm:size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"></path>
+                </svg>
+                {latestEpisode.itunes.duration}
+              </span>
+            )}
+          </div>
+        </div>
+
+          <div class="flex gap-2 mt-1">
+            <button
+              class="play-button flex items-center gap-1.5 px-3 py-1.5 sm:px-3 sm:py-1.5 bg-[#2d2a26] text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-widest hover:bg-orange-800 transition-colors font-serif rounded-lg shadow-sm"
+            data-title={latestEpisode.title}
+            data-audio={latestEpisode.enclosure?.url}
+            data-cover={coverImage}
+            aria-label={site.ui.playEpisodeAriaLabel}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="size-3 sm:size-3.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M7 4.406c0-.853.947-1.354 1.649-.865l10.211 7.112c.621.432.621 1.34 0 1.772l-10.211 7.112c-.702.489-1.649-.012-1.649-.865V4.406z"
+              ></path>
+            </svg>
+            {site.ui.playLabel}
+          </button>
+            <a
+              href={`/episodes/${latestEpisode.id}`}
+              class="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-1.5 border border-[#2d2a26]/20 text-[#2d2a26] text-[10px] sm:text-[11px] font-bold uppercase tracking-widest hover:border-[#2d2a26] hover:bg-[#2d2a26] hover:text-white transition-all font-serif rounded-lg"
+            >
+            {site.ui.detailLabel}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
