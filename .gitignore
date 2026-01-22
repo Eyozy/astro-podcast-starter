@@ -2,9 +2,9 @@
 dist/
 # generated types
 .astro/
-.claude
+# .claude
 .vscode
-docs
+# docs
 
 # dependencies
 node_modules/
