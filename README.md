@@ -4,7 +4,7 @@
 
 ## 在线访问
 
-- **网站地址**: [待部署]
+- **网站地址**: https://xzsj.netlify.app/
 - **RSS 订阅**: 见 `src/data/site.json` → `podcast.rssUrl`
 
 ## 功能亮点
