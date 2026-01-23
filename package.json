@@ -9,6 +9,7 @@
     "astro": "astro",
     "fetch": "node scripts/fetch-rss.js",
     "sync": "node scripts/sync-content.js",
+    "reset": "node scripts/reset-data.js",
     "analyze": "node scripts/analyze-themes.js",
     "tag": "node scripts/tag-episodes.js",
     "smart-build": "npm run sync && npm run build"

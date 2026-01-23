@@ -23,6 +23,9 @@ pnpm-debug.log*
 .envrc
 .direnv/
 
+# RSS cache
+.last-rss-url
+
 # macOS-specific files
 .DS_Store
 
