@@ -5,6 +5,7 @@ import path from "path";
 import readline from "readline";
 import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
+import DOMPurify from "isomorphic-dompurify";
 import { getRssUrl, loadSiteConfig } from "./site-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,7 +38,7 @@ function checkEnvStatus() {
 
   if (!apiKey) {
     console.log("⚠️  .env 文件中未配置 DEEPSEEK_API_KEY，跳过 AI 打标功能");
-    console.log("   请在 .env 文件中添加: DEEPSEEK_API_KEY=你的密钥\n");
+    console.log("   请在 .env 文件中添加：DEEPSEEK_API_KEY=你的密钥\n");
     return { hasEnv: true, hasApiKey: false };
   }
 
@@ -85,7 +86,7 @@ function clearAllData() {
 async function askUserConfirm(question) {
   // CI 环境或非交互式终端，默认返回 true（自动确认）
   if (!process.stdin.isTTY) {
-    console.log(`${question} [自动确认: Y]`);
+    console.log(`${question} [自动确认：Y]`);
     return true;
   }
 
@@ -118,8 +119,8 @@ async function checkRssChange() {
   if (!lastRssUrl && hasExistingData) {
     // 如果有旧数据，提示用户是否清空
     console.log("\n⚠️  检测到已有播客数据（可能来自模板示例）");
-    console.log(`   当前数据: ${existingEpisodes.length} 集节目`);
-    console.log(`   新 RSS 地址: ${RSS_URL}\n`);
+    console.log(`   当前数据：${existingEpisodes.length} 集节目`);
+    console.log(`   新 RSS 地址：${RSS_URL}\n`);
 
     const confirm = await askUserConfirm("是否清空旧数据并重新同步？[Y/n] ");
 
@@ -142,8 +143,8 @@ async function checkRssChange() {
 
   // RSS 地址变化，提示用户
   console.log("\n⚠️  检测到 RSS 地址已变更");
-  console.log(`   旧地址: ${lastRssUrl}`);
-  console.log(`   新地址: ${RSS_URL}\n`);
+  console.log(`   旧地址：${lastRssUrl}`);
+  console.log(`   新地址：${RSS_URL}\n`);
 
   const confirm = await askUserConfirm("是否清空旧数据并重新同步？[Y/n] ");
 
@@ -181,7 +182,7 @@ function readEpisodes() {
   try {
     return JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
   } catch (e) {
-    console.warn("⚠️  episodes.json 解析失败，将视为空数据:", e.message);
+    console.warn("⚠️  episodes.json 解析失败，将视为空数据：", e.message);
     return [];
   }
 }
@@ -207,12 +208,20 @@ function extractEpisodeId(item, index) {
 }
 
 function normalizeEpisode(item, index) {
+  // 使用 DOMPurify 清理 RSS content，防止 XSS 攻击
+  const sanitizedContent = item.content
+    ? DOMPurify.sanitize(item.content, {
+        ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li'],
+        ALLOWED_ATTR: ['href', 'target', 'rel'],
+      })
+    : "";
+
   return {
     id: extractEpisodeId(item, index),
     title: item.title || "",
     link: item.link || "",
     pubDate: item.pubDate || "",
-    content: item.content || "",
+    content: sanitizedContent,
     contentSnippet: item.contentSnippet || "",
     enclosure: item.enclosure,
     itunes: item.itunes || {},
@@ -290,7 +299,7 @@ function runAnalyzeThemes() {
 
 function runTagging(ids, envStatus) {
   if (options.skipTag) {
-    console.log("跳过 AI 打标: --skip-tag 已启用");
+    console.log("跳过 AI 打标：--skip-tag 已启用");
     return;
   }
   if (!envStatus.hasApiKey) {
@@ -298,7 +307,7 @@ function runTagging(ids, envStatus) {
     return;
   }
   if (ids.length === 0) {
-    console.log("跳过 AI 打标: 没有需要更新的节目");
+    console.log("跳过 AI 打标：没有需要更新的节目");
     return;
   }
 
