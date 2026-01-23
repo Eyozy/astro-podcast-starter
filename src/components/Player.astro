@@ -92,7 +92,7 @@ const minimalEpisodes = episodes.map((ep) => ({
   <!-- 展开后的播放器卡片 -->
   <div
     id="player-expanded-card"
-    class="absolute bottom-0 right-0 z-10 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] lg:w-[480px] border border-[#2d2a26]/20 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl overflow-hidden flex flex-col backdrop-blur-xl bg-white/95 transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) origin-bottom-right"
+    class="absolute bottom-0 right-0 z-10 w-[calc(100vw-3rem)] sm:w-90 md:w-105 lg:w-120 border border-[#2d2a26]/20 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl overflow-hidden flex flex-col backdrop-blur-xl bg-white/95 transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) origin-bottom-right"
   >
     <!-- 顶部拖拽/控制栏 -->
     <div
@@ -183,6 +183,13 @@ const minimalEpisodes = episodes.map((ep) => ({
         <div
           class="group h-3 -my-1 py-1 cursor-pointer"
           id="progress-container"
+          role="slider"
+          tabindex="0"
+          aria-label="播放进度"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-valuetext="00:00"
         >
           <div
             class="h-1.5 bg-[#2d2a26]/5 rounded-full relative overflow-visible"
@@ -311,7 +318,14 @@ const minimalEpisodes = episodes.map((ep) => ({
   <audio id="main-audio" src="" preload="auto"></audio>
 </div>
 
-<script define:vars={{ allEpisodes: minimalEpisodes, defaultCover: site.assets.defaultCover, playAriaLabel: site.player.playAriaLabel, pauseAriaLabel: site.player.pauseAriaLabel }}>
+<script
+  define:vars={{
+    allEpisodes: minimalEpisodes,
+    defaultCover: site.assets.defaultCover,
+    playAriaLabel: site.player.playAriaLabel,
+    pauseAriaLabel: site.player.pauseAriaLabel,
+  }}
+>
   let isMinimized = false;
   let isDragging = false;
   let currentEpisodeIndex = -1;
@@ -534,7 +548,28 @@ const minimalEpisodes = episodes.map((ep) => ({
       updateProgressVisual(pos * 100);
     });
 
-    progressContainer?.addEventListener("touchstart", handleTouchStart, { passive: true });
+    progressContainer?.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+
+    // 进度条键盘事件支持（无障碍）
+    progressContainer?.addEventListener("keydown", (e) => {
+      if (!audio.duration) return;
+      const KEYBOARD_SEEK_SECONDS = 5;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        audio.currentTime = Math.max(
+          0,
+          audio.currentTime - KEYBOARD_SEEK_SECONDS,
+        );
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        audio.currentTime = Math.min(
+          audio.duration,
+          audio.currentTime + KEYBOARD_SEEK_SECONDS,
+        );
+      }
+    });
 
     // 移除旧监听器再添加新的，防止 View Transitions 导致重复绑定
     document.removeEventListener("mousemove", handleDocMouseMove);
@@ -544,16 +579,22 @@ const minimalEpisodes = episodes.map((ep) => ({
 
     document.addEventListener("mousemove", handleDocMouseMove);
     document.addEventListener("mouseup", handleDocMouseUp);
-    document.addEventListener("touchmove", handleDocTouchMove, { passive: true });
+    document.addEventListener("touchmove", handleDocTouchMove, {
+      passive: true,
+    });
     document.addEventListener("touchend", handleDocTouchEnd);
 
     // 页面切换前清理事件监听器
-    document.addEventListener("astro:before-swap", () => {
-      document.removeEventListener("mousemove", handleDocMouseMove);
-      document.removeEventListener("mouseup", handleDocMouseUp);
-      document.removeEventListener("touchmove", handleDocTouchMove);
-      document.removeEventListener("touchend", handleDocTouchEnd);
-    }, { once: true });
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        document.removeEventListener("mousemove", handleDocMouseMove);
+        document.removeEventListener("mouseup", handleDocMouseUp);
+        document.removeEventListener("touchmove", handleDocTouchMove);
+        document.removeEventListener("touchend", handleDocTouchEnd);
+      },
+      { once: true },
+    );
 
     if (audio.dataset.initialized) {
       updateNavButtons();
@@ -642,8 +683,14 @@ const minimalEpisodes = episodes.map((ep) => ({
 
     minimizedBall?.addEventListener("click", () => toggleMinimize(false));
 
-    forwardBtn?.addEventListener("click", () => (audio.currentTime += SEEK_SECONDS));
-    backwardBtn?.addEventListener("click", () => (audio.currentTime -= SEEK_SECONDS));
+    forwardBtn?.addEventListener(
+      "click",
+      () => (audio.currentTime += SEEK_SECONDS),
+    );
+    backwardBtn?.addEventListener(
+      "click",
+      () => (audio.currentTime -= SEEK_SECONDS),
+    );
     prevBtn?.addEventListener("click", () =>
       playEpisode(currentEpisodeIndex - 1),
     );
@@ -671,6 +718,18 @@ const minimalEpisodes = episodes.map((ep) => ({
       if (progressHandle) progressHandle.style.left = `${percent}%`;
       if (currentTimeEl)
         currentTimeEl.textContent = formatTime(audio.currentTime);
+
+      // 更新进度条 ARIA 属性
+      if (progressContainer) {
+        progressContainer.setAttribute(
+          "aria-valuenow",
+          Math.round(percent).toString(),
+        );
+        progressContainer.setAttribute(
+          "aria-valuetext",
+          formatTime(audio.currentTime),
+        );
+      }
 
       // Update minimized ring
       if (progressRing) {
@@ -769,5 +828,15 @@ const minimalEpisodes = episodes.map((ep) => ({
     audio
       .play()
       .catch((err) => console.log("Auto-play blocked or failed", err));
+  });
+
+  // 键盘事件支持（无障碍）- Enter 和 Space 触发播放
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const btn = e.target.closest(".play-button");
+    if (!btn) return;
+
+    e.preventDefault();
+    btn.click(); // 复用点击处理逻辑
   });
 </script>
