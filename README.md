@@ -58,16 +58,16 @@ npm install
 
 ### 第四步：配置环境变量（可选）
 
-如果你需要使用 AI 智能打标功能，需要配置 OpenRouter API 密钥。
+如果你需要使用 AI 智能打标功能，需要配置 DeepSeek API 密钥。
 
 1. 在项目根目录创建 `.env` 文件
 2. 添加以下内容：
 
 ```bash
-OPENROUTER_API_KEY=sk-or-v1-你的密钥
+DEEPSEEK_API_KEY=sk-你的密钥
 # 可选，不填会使用默认值
-OPENROUTER_API_URL=https://openrouter.ai/api/v1/chat/completions
-OPENROUTER_MODEL=z-ai/glm-4.5-air:free
+DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
+DEEPSEEK_MODEL=deepseek-chat
 ```
 
 > 没有 API 密钥？没关系，网站的基础功能（同步、构建、预览）都可以正常使用，只是无法使用 AI 自动打标功能。
@@ -97,6 +97,7 @@ npm run dev
 | `npm run preview`     | 预览构建后的网站                               |
 | `npm run fetch`       | 从 RSS 拉取最新节目数据                        |
 | `npm run sync`        | 完整同步：拉取数据 + 生成文字稿模板 + 自动打标 |
+| `npm run reset`       | 重置所有播客数据（切换播客时使用）             |
 | `npm run tag`         | 为未分类的节目添加主题和标签（需要 API 密钥）  |
 | `npm run analyze`     | 重新分析所有节目，生成主题分类（慎用）         |
 | `npm run smart-build` | 一键完成：同步数据 + 构建网站                  |
@@ -148,9 +149,10 @@ npm run smart-build
 ```
 xzsj/
 ├── scripts/                   # 数据处理脚本
-│   ├── ai-client.js           # OpenRouter API 封装
+│   ├── ai-client.js           # DeepSeek API 封装
 │   ├── analyze-themes.js      # AI 主题分析
 │   ├── fetch-rss.js           # RSS 数据抓取
+│   ├── reset-data.js          # 数据重置脚本
 │   ├── sync-content.js        # 内容同步
 │   └── tag-episodes.js        # AI 智能打标
 ├── src/
@@ -175,7 +177,7 @@ xzsj/
 - **[Astro](https://astro.build/)** - 静态网站生成框架
 - **[Tailwind CSS](https://tailwindcss.com/)** - 原子化 CSS 框架
 - **[Pagefind](https://pagefind.app/)** - 静态网站搜索引擎
-- **[OpenRouter](https://openrouter.ai/)** - AI API 网关
+- **[DeepSeek](https://platform.deepseek.com/)** - AI API
 
 ## 部署
 
@@ -187,11 +189,11 @@ xzsj/
 2. 在 Netlify 中导入项目
 3. 设置构建命令为 `npm run build`（推荐，RSS 同步交给 GitHub Actions）
 4. 设置发布目录为 `dist`
-5. 在 GitHub Secrets 中添加 `OPENROUTER_API_KEY`（如需 AI 功能），详细操作步骤：
+5. 在 GitHub Secrets 中添加 `DEEPSEEK_API_KEY`（如需 AI 功能），详细操作步骤：
    - 打开 GitHub 仓库页面，点击顶部的 **Settings** ⚙️
    - 在左侧导航栏找到 **Security** 区域，点击 **Secrets and variables**，展开后选择 **Actions**
    - 点击右侧绿色的 **New repository secret** 按钮
-   - **Name** 输入 `OPENROUTER_API_KEY`，**Secret** 输入你的 OpenRouter 密钥
+   - **Name** 输入 `DEEPSEEK_API_KEY`，**Secret** 输入你的 DeepSeek 密钥
    - 点击 **Add secret** 保存
 
 > 如果你不使用 GitHub Actions，同步和构建可以改用 `npm run smart-build`。
@@ -202,13 +204,17 @@ xzsj/
 
 ## 常见问题
 
-**Q: 没有 OpenRouter API 密钥可以使用吗？**
+**Q: 没有 DeepSeek API 密钥可以使用吗？**
 
 可以。网站的核心功能都能正常使用，只是节目不会自动获得主题分类和标签。你可以手动编辑 `episodes.json` 来添加这些信息。
 
-**Q: 如何获取 OpenRouter API 密钥？**
+**Q: 如何获取 DeepSeek API 密钥？**
 
-访问 [OpenRouter](https://openrouter.ai/) 注册账号，在控制台创建 API Key 即可。新用户有免费额度。
+访问 [DeepSeek Platform](https://platform.deepseek.com/) 注册账号，在控制台创建 API Key 即可。
+
+**Q: 切换到新播客后，旧数据还在怎么办？**
+
+运行 `npm run reset` 可以一键清空所有播客数据。或者在运行 `npm run sync` 时，脚本会自动检测到已有数据并询问是否清空。
 
 **Q: 构建时搜索功能报错怎么办？**
 

@@ -4,7 +4,7 @@
 
 可复用的播客静态网站模板，具备 AI 智能内容管理功能。
 
-- **技术栈**: Astro 5.x + Tailwind CSS 4.x + Pagefind + OpenRouter API
+- **技术栈**: Astro 5.x + Tailwind CSS 4.x + Pagefind + DeepSeek API
 - **数据源**: 小宇宙 RSS（在 `src/data/site.json` 中配置）
 - **设计风格**: 复古温馨 (背景 `#f5f2ed`, 文字 `#2d2a26`, 强调 `orange-700`)
 
@@ -13,7 +13,8 @@
 ```bash
 npm run dev          # 开发服务器
 npm run build        # 构建 (含 Pagefind 搜索索引)
-npm run sync         # 同步 RSS + 生成文字稿模板
+npm run sync         # 同步 RSS + 生成文字稿模板 + AI 打标
+npm run reset        # 重置所有播客数据（切换播客时使用）
 npm run fetch        # 仅抓取 RSS
 npm run analyze      # AI 主题分析 (生成 themes.json)
 npm run tag          # AI 打标 (需 .env)

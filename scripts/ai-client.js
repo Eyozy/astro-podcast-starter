@@ -1,14 +1,13 @@
 import "dotenv/config";
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_API_URL =
-  process.env.OPENROUTER_API_URL ||
-  "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_MODEL =
-  process.env.OPENROUTER_MODEL || "z-ai/glm-4.5-air:free";
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_API_URL =
+  process.env.DEEPSEEK_API_URL ||
+  "https://api.deepseek.com/v1/chat/completions";
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
 const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
 
-export { OPENROUTER_API_KEY, OPENROUTER_API_URL, OPENROUTER_MODEL };
+export { DEEPSEEK_API_KEY, DEEPSEEK_API_URL, DEEPSEEK_MODEL };
 
 /**
  * Sends a prompt to the AI and expects a JSON response.
@@ -21,8 +20,8 @@ export async function askAI(
   systemPrompt = DEFAULT_SYSTEM_PROMPT,
   options = {},
 ) {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error("OPENROUTER_API_KEY is missing in .env");
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error("DEEPSEEK_API_KEY is missing in .env");
   }
 
   const { timeoutMs = 30000, temperature = 0.7 } = options;
@@ -32,7 +31,7 @@ export async function askAI(
   try {
     // 统一封装请求体，便于调试/日志追踪
     const payload = {
-      model: OPENROUTER_MODEL,
+      model: DEEPSEEK_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
@@ -41,11 +40,11 @@ export async function askAI(
       response_format: { type: "json_object" },
     };
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(DEEPSEEK_API_URL, {
       method: "POST",
       signal: controller.signal,
       headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),

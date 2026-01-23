@@ -1,4 +1,4 @@
-import { askAI, OPENROUTER_API_URL, OPENROUTER_MODEL } from "./ai-client.js";
+import { askAI, DEEPSEEK_API_URL, DEEPSEEK_MODEL } from "./ai-client.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -47,8 +47,8 @@ async function analyzeThemes() {
       }`;
 
     console.log("Step 1: Generating tags from episode content...");
-    console.log(`API URL: ${OPENROUTER_API_URL}`);
-    console.log(`Model: ${OPENROUTER_MODEL}`);
+    console.log(`API URL: ${DEEPSEEK_API_URL}`);
+    console.log(`Model: ${DEEPSEEK_MODEL}`);
 
     const tagsResult = await askAI(
       step1Prompt,

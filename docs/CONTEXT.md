@@ -7,6 +7,7 @@
 - AI 智能内容管理（主题生成、自动打标、标签规范化）
 - 站点文案与链接集中配置（`src/data/site.json`，带 JSON Schema 校验）
 - API 端点支持动态 RSS 获取
+- RSS 变更自动检测，切换播客时自动清理旧数据
 
 ---
 
@@ -15,11 +16,12 @@
 ```
 astro-podcast-starter/
 ├── scripts/                   # 数据处理脚本
-│   ├── ai-client.js           # OpenRouter API 封装
+│   ├── ai-client.js           # DeepSeek API 封装
 │   ├── analyze-themes.js      # AI 主题分析
 │   ├── fetch-rss.js           # RSS 数据抓取
 │   ├── normalize-tags.js      # 标签规范化（基于 taxonomy）
 │   ├── refresh-themes.js      # AI 主题刷新（更新标题/描述/代表标签）
+│   ├── reset-data.js          # 数据重置脚本
 │   ├── site-config.js         # 读取站点配置（RSS 等）
 │   ├── sync-content.js        # 内容同步
 │   └── tag-episodes.js        # AI 智能打标
@@ -74,10 +76,11 @@ astro-podcast-starter/
 |------|------|
 | `scripts/fetch-rss.js` | 从小宇宙 RSS 抓取节目数据 |
 | `scripts/site-config.js` | 读取站点配置（含 RSS） |
-| `scripts/ai-client.js` | OpenRouter API 封装，提供 `askAI()` |
+| `scripts/ai-client.js` | DeepSeek API 封装，提供 `askAI()` |
 | `scripts/analyze-themes.js` | AI 主题分析 (生成 themes.json) |
 | `scripts/tag-episodes.js` | AI 智能打标 (更新 episodes.json) |
-| `scripts/sync-content.js` | 同步 RSS + 生成文字稿模板 |
+| `scripts/sync-content.js` | 同步 RSS + 生成文字稿模板 + 自动打标 |
+| `scripts/reset-data.js` | 重置所有播客数据（切换播客时使用） |
 | `scripts/normalize-tags.js` | 标签规范化，基于 tag-taxonomy.json 清理标签 |
 | `scripts/refresh-themes.js` | AI 刷新主题标题、描述和代表标签 |
 
@@ -135,9 +138,9 @@ Astro 静态页面 + Pagefind 搜索索引
 在 `.env` 文件中配置：
 
 ```bash
-OPENROUTER_API_KEY=your_api_key_here
-OPENROUTER_API_URL=https://openrouter.ai/api/v1/chat/completions  # 可选
-OPENROUTER_MODEL=z-ai/glm-4.5-air:free  # 可选
+DEEPSEEK_API_KEY=your_api_key_here
+DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions  # 可选
+DEEPSEEK_MODEL=deepseek-chat  # 可选
 ```
 
 如果使用 GitHub Actions 定时同步，请将这些变量配置在 GitHub Secrets。
