@@ -38,6 +38,9 @@ const recentEpisodes = episodes.slice(1, 6);
           <div class="flex flex-col group py-6 border-b border-[#2d2a26]/5 hover:bg-white/40 transition-colors px-4 -mx-4 rounded-2xl">
             <div
               class="flex items-center group/item cursor-pointer play-button grow"
+              role="button"
+              tabindex="0"
+              aria-label={`播放 ${episode.title}`}
               data-title={episode.title}
               data-audio={episode.enclosure?.url}
               data-cover={episode.itunes?.image || site.assets.defaultCover}
