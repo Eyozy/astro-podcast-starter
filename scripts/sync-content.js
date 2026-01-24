@@ -28,21 +28,60 @@ if (!TRANSCRIPT_PLACEHOLDER) {
 // ============ 环境变量检测 ============
 function checkEnvStatus() {
   const envExists = fs.existsSync(ENV_PATH);
-  const apiKey = process.env.DEEPSEEK_API_KEY;
 
-  if (!envExists) {
-    console.log("ℹ️  未检测到 .env 文件，跳过 AI 打标功能");
-    console.log("   如需启用 AI 功能，请创建 .env 文件并配置 DEEPSEEK_API_KEY\n");
-    return { hasEnv: false, hasApiKey: false };
+  const providerRaw = process.env.AI_PROVIDER;
+  const provider = providerRaw ? providerRaw.trim().toLowerCase() : "";
+
+  if (!provider) {
+    if (!envExists) {
+      console.log("ℹ️  未检测到 .env 文件，跳过 AI 打标功能");
+    } else {
+      console.log("⚠️  .env 文件中未配置 AI_PROVIDER，跳过 AI 打标功能");
+    }
+    console.log(
+      "   如需启用 AI 功能，请在 .env 或环境变量中配置：AI_PROVIDER + 对应的 *_API_KEY/_API_URL/_MODEL\n",
+    );
+    return { hasEnv: envExists, hasApiKey: false };
   }
 
-  if (!apiKey) {
-    console.log("⚠️  .env 文件中未配置 DEEPSEEK_API_KEY，跳过 AI 打标功能");
-    console.log("   请在 .env 文件中添加：DEEPSEEK_API_KEY=你的密钥\n");
-    return { hasEnv: true, hasApiKey: false };
+  const prefix =
+    provider === "deepseek"
+      ? "DEEPSEEK"
+      : provider === "openrouter"
+        ? "OPENROUTER"
+        : provider === "xai"
+          ? "XAI"
+          : provider === "zhipu"
+            ? "ZHIPU"
+            : null;
+
+  if (!prefix) {
+    console.log(`⚠️  AI_PROVIDER=${providerRaw} 不受支持，跳过 AI 打标功能`);
+    console.log("   支持的取值：deepseek | openrouter | xai | zhipu\n");
+    return { hasEnv: envExists, hasApiKey: false };
   }
 
-  return { hasEnv: true, hasApiKey: true };
+  const apiKeyEnv = `${prefix}_API_KEY`;
+  const apiUrlEnv = `${prefix}_API_URL`;
+  const modelEnv = `${prefix}_MODEL`;
+
+  if (!process.env[apiKeyEnv]) {
+    console.log(`⚠️  未配置 ${apiKeyEnv}，跳过 AI 打标功能`);
+    console.log(`   请在 .env 或环境变量中添加：${apiKeyEnv}=你的密钥\n`);
+    return { hasEnv: envExists, hasApiKey: false };
+  }
+  if (!process.env[apiUrlEnv]) {
+    console.log(`⚠️  未配置 ${apiUrlEnv}，跳过 AI 打标功能`);
+    console.log(`   请在 .env 或环境变量中添加：${apiUrlEnv}=请求地址\n`);
+    return { hasEnv: envExists, hasApiKey: false };
+  }
+  if (!process.env[modelEnv]) {
+    console.log(`⚠️  未配置 ${modelEnv}，跳过 AI 打标功能`);
+    console.log(`   请在 .env 或环境变量中添加：${modelEnv}=模型名称\n`);
+    return { hasEnv: envExists, hasApiKey: false };
+  }
+
+  return { hasEnv: envExists, hasApiKey: true };
 }
 
 // ============ RSS 变更检测 ============

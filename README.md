@@ -58,19 +58,24 @@ npm install
 
 ### 第四步：配置环境变量（可选）
 
-如果你需要使用 AI 智能打标功能，需要配置 DeepSeek API 密钥。
+如果你需要使用 AI 智能打标功能，需要配置 AI 提供商的环境变量（`AI_PROVIDER` + 对应的 `*_API_KEY/_API_URL/_MODEL`）。
 
 1. 在项目根目录创建 `.env` 文件
 2. 添加以下内容：
 
 ```bash
+# 选择提供商：deepseek | openrouter | xai | zhipu（必填）
+AI_PROVIDER=deepseek
+
+# DeepSeek（示例）
 DEEPSEEK_API_KEY=sk-你的密钥
-# 可选，不填会使用默认值
 DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
 DEEPSEEK_MODEL=deepseek-chat
 ```
 
 > 没有 API 密钥？没关系，网站的基础功能（同步、构建、预览）都可以正常使用，只是无法使用 AI 自动打标功能。
+>
+> 其他提供商（OpenRouter / xAI / 智谱）的环境变量示例请参考 `.env.example`。
 
 ### 第五步：获取节目数据
 
@@ -177,7 +182,7 @@ xzsj/
 - **[Astro](https://astro.build/)** - 静态网站生成框架
 - **[Tailwind CSS](https://tailwindcss.com/)** - 原子化 CSS 框架
 - **[Pagefind](https://pagefind.app/)** - 静态网站搜索引擎
-- **[DeepSeek](https://platform.deepseek.com/)** - AI API
+- **AI（可选）** - 支持多提供商：DeepSeek / OpenRouter / xAI / 智谱
 
 ## 部署
 
@@ -189,11 +194,11 @@ xzsj/
 2. 在 Netlify 中导入项目
 3. 设置构建命令为 `npm run build`（推荐，RSS 同步交给 GitHub Actions）
 4. 设置发布目录为 `dist`
-5. 在 GitHub Secrets 中添加 `DEEPSEEK_API_KEY`（如需 AI 功能），详细操作步骤：
+5. 如需 AI 功能，在 GitHub Secrets 中添加 `AI_PROVIDER` + 对应提供商的 `*_API_KEY/_API_URL/_MODEL`（例如 DeepSeek 或 OpenRouter）：
    - 打开 GitHub 仓库页面，点击顶部的 **Settings** ⚙️
    - 在左侧导航栏找到 **Security** 区域，点击 **Secrets and variables**，展开后选择 **Actions**
    - 点击右侧绿色的 **New repository secret** 按钮
-   - **Name** 输入 `DEEPSEEK_API_KEY`，**Secret** 输入你的 DeepSeek 密钥
+   - **Name** 输入变量名（例如 `AI_PROVIDER` / `DEEPSEEK_API_KEY` / `DEEPSEEK_API_URL` / `DEEPSEEK_MODEL`），**Secret** 输入对应值
    - 点击 **Add secret** 保存
 
 > 如果你不使用 GitHub Actions，同步和构建可以改用 `npm run smart-build`。
@@ -204,13 +209,13 @@ xzsj/
 
 ## 常见问题
 
-**Q: 没有 DeepSeek API 密钥可以使用吗？**
+**Q: 没有 AI API 密钥可以使用吗？**
 
 可以。网站的核心功能都能正常使用，只是节目不会自动获得主题分类和标签。你可以手动编辑 `episodes.json` 来添加这些信息。
 
-**Q: 如何获取 DeepSeek API 密钥？**
+**Q: 如何获取 AI API 密钥？**
 
-访问 [DeepSeek Platform](https://platform.deepseek.com/) 注册账号，在控制台创建 API Key 即可。
+根据你选择的提供商去对应控制台创建 API Key（DeepSeek / OpenRouter / xAI / 智谱），并把 `AI_PROVIDER` 与对应的 `*_API_KEY/_API_URL/_MODEL` 配好即可。
 
 **Q: 切换到新播客后，旧数据还在怎么办？**
 
