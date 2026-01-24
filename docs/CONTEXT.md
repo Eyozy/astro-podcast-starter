@@ -138,9 +138,15 @@ Astro 静态页面 + Pagefind 搜索索引
 在 `.env` 文件中配置：
 
 ```bash
+# 选择使用哪个 AI 提供商（必填）
+AI_PROVIDER=deepseek  # deepseek | openrouter | xai | zhipu
+
+# DeepSeek
 DEEPSEEK_API_KEY=your_api_key_here
-DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions  # 可选
-DEEPSEEK_MODEL=deepseek-chat  # 可选
+DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
+DEEPSEEK_MODEL=deepseek-chat
+
+# 其他提供商（OpenRouter / xAI / 智谱）请参考 `.env.example`
 ```
 
 如果使用 GitHub Actions 定时同步，请将这些变量配置在 GitHub Secrets。

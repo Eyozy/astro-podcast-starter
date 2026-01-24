@@ -1,13 +1,76 @@
 import "dotenv/config";
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL =
-  process.env.DEEPSEEK_API_URL ||
-  "https://api.deepseek.com/v1/chat/completions";
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
 const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
 
-export { DEEPSEEK_API_KEY, DEEPSEEK_API_URL, DEEPSEEK_MODEL };
+const SUPPORTED_PROVIDERS = ["deepseek", "openrouter", "xai", "zhipu"];
+
+function readRequiredEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is missing in environment variables`);
+  }
+  return value;
+}
+
+function normalizeProvider(raw) {
+  const value = String(raw || "").trim().toLowerCase();
+  if (!value) return null;
+  return value;
+}
+
+export function getActiveAiInfo() {
+  const provider = normalizeProvider(process.env.AI_PROVIDER);
+  if (!provider) {
+    throw new Error("AI_PROVIDER is missing in environment variables");
+  }
+  if (!SUPPORTED_PROVIDERS.includes(provider)) {
+    throw new Error(
+      `AI_PROVIDER must be one of: ${SUPPORTED_PROVIDERS.join(", ")}`,
+    );
+  }
+
+  const prefix =
+    provider === "deepseek"
+      ? "DEEPSEEK"
+      : provider === "openrouter"
+        ? "OPENROUTER"
+        : provider === "xai"
+          ? "XAI"
+          : "ZHIPU";
+
+  const apiUrl = readRequiredEnv(`${prefix}_API_URL`);
+  const model = readRequiredEnv(`${prefix}_MODEL`);
+  return { provider, apiUrl, model };
+}
+
+function getProviderRequestConfig() {
+  const { provider, apiUrl, model } = getActiveAiInfo();
+
+  const prefix =
+    provider === "deepseek"
+      ? "DEEPSEEK"
+      : provider === "openrouter"
+        ? "OPENROUTER"
+        : provider === "xai"
+          ? "XAI"
+          : "ZHIPU";
+
+  const apiKey = readRequiredEnv(`${prefix}_API_KEY`);
+
+  const headers = {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  };
+
+  if (provider === "openrouter") {
+    const referer = process.env.OPENROUTER_HTTP_REFERER;
+    const title = process.env.OPENROUTER_X_TITLE;
+    if (referer) headers["HTTP-Referer"] = referer;
+    if (title) headers["X-Title"] = title;
+  }
+
+  return { provider, apiUrl, model, headers };
+}
 
 /**
  * Sends a prompt to the AI and expects a JSON response.
@@ -20,53 +83,63 @@ export async function askAI(
   systemPrompt = DEFAULT_SYSTEM_PROMPT,
   options = {},
 ) {
-  if (!DEEPSEEK_API_KEY) {
-    throw new Error("DEEPSEEK_API_KEY is missing in .env");
-  }
+  const { apiUrl, model, headers } = getProviderRequestConfig();
 
   const { timeoutMs = 30000, temperature = 0.7 } = options;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // 统一封装请求体，便于调试/日志追踪
-    const payload = {
-      model: DEEPSEEK_MODEL,
+    const basePayload = {
+      model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
       temperature,
-      response_format: { type: "json_object" },
     };
 
-    const response = await fetch(DEEPSEEK_API_URL, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    async function sendRequest(withResponseFormat) {
+      const payload = withResponseFormat
+        ? { ...basePayload, response_format: { type: "json_object" } }
+        : basePayload;
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${response.status} - ${text}`);
+      return fetch(apiUrl, {
+        method: "POST",
+        signal: controller.signal,
+        headers,
+        body: JSON.stringify(payload),
+      });
     }
 
-    const data = await response.json();
+    // 优先尝试 OpenAI 风格的 response_format；如果 provider 不支持，再回退重试一次。
+    let response = await sendRequest(true);
+    if (!response.ok && [400, 404, 415, 422].includes(response.status)) {
+      response = await sendRequest(false);
+    }
+
+    if (!response.ok) {
+      // 避免把响应体写入日志（有些服务会在错误里返回敏感/冗长信息）
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    const data = await response.json().catch(() => null);
+    if (!data) {
+      throw new Error("Failed to parse API response as JSON");
+    }
 
     if (!data.choices || data.choices.length === 0) {
       throw new Error("No content received from AI");
     }
 
-    const content = data.choices[0].message.content;
+    const content = data?.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) {
+      throw new Error("AI response content is empty");
+    }
 
     try {
       return JSON.parse(content);
     } catch (e) {
-      console.error("Failed to parse JSON response:", content);
       throw new Error(`Failed to parse JSON response: ${e.message}`);
     }
   } catch (error) {

@@ -33,9 +33,21 @@ jobs:
 
       - name: Sync content
         env:
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_API_URL: ${{ secrets.DEEPSEEK_API_URL }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_API_URL: ${{ secrets.OPENROUTER_API_URL }}
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          OPENROUTER_HTTP_REFERER: ${{ secrets.OPENROUTER_HTTP_REFERER }}
+          OPENROUTER_X_TITLE: ${{ secrets.OPENROUTER_X_TITLE }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_API_URL: ${{ secrets.XAI_API_URL }}
+          XAI_MODEL: ${{ secrets.XAI_MODEL }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          ZHIPU_API_URL: ${{ secrets.ZHIPU_API_URL }}
+          ZHIPU_MODEL: ${{ secrets.ZHIPU_MODEL }}
         run: npm run sync
 
       - name: Commit if changed
