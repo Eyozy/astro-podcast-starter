@@ -34,3 +34,6 @@ pnpm-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# git worktrees
+.worktrees/
