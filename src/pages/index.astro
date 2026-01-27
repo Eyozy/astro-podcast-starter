@@ -9,12 +9,15 @@ import site from "../data/site.json";
 
 // 跳过 Hero 使用的第一集，展示近期更新
 const recentEpisodes = episodes.slice(1, 6);
+
+// AI 功能开关
+const aiEnabled = site.features?.aiTagging === true;
 ---
 
 <MainLayout title={site.pages.home.title}>
   <Hero />
 
-  <GuideSection />
+  {aiEnabled && <GuideSection />}
 
   <section class="mb-24">
     <div

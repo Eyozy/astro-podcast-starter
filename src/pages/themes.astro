@@ -1,10 +1,27 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import EpisodeCard from "../components/EpisodeCard.astro";
-import themes from "../data/themes.json";
+import themesData from "../data/themes.json";
 import episodes from "../data/episodes.json";
 // 页面标题与空状态文案在 site.json 中配置。
 import site from "../data/site.json";
+
+// 主题类型定义
+type Theme = {
+  id: string;
+  title: string;
+  description: string;
+  representativeTags?: string[];
+};
+
+// AI 功能关闭时返回 404
+const aiEnabled = site.features?.aiTagging === true;
+if (!aiEnabled) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+// 类型断言
+const themes = themesData as Theme[];
 
 // 为每个主题计算节目数量
 const themesWithCount = themes.map((theme) => ({

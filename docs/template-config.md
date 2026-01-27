@@ -28,6 +28,8 @@
 
 所有站点内容集中在 `src/data/site.json`，你只需改这个文件即可完成大部分定制。
 
+- `features`：功能开关配置
+  - `aiTagging`：是否启用 AI 标签/主题功能（默认 `false`）
 - `brand`：品牌名、站点元信息（SEO、作者、Twitter 等）
 - `assets`：默认封面、OG 图、favicon
 - `podcast`：RSS 与平台链接、二维码
@@ -52,6 +54,29 @@ dist (静态站点)
 ```
 
 注意：`src/data/episodes.json` 和 `src/content/transcripts` 是自动生成内容，不建议手改。
+
+### AI 标签/主题功能
+
+项目支持 AI 智能打标和主题分类功能，通过 `site.json` 中的 `features.aiTagging` 开关控制：
+
+| 配置值 | 效果 |
+|--------|------|
+| `false`（默认） | 关闭 AI 功能，隐藏主题页面和标签筛选，无需配置环境变量 |
+| `true` | 启用 AI 功能，需在 `.env` 中配置 AI 提供商 |
+
+**关闭时的行为：**
+- 导航栏不显示"探索主题"
+- 首页不显示主题导航区块
+- `/themes` 页面返回 404
+- 节目列表页隐藏标签筛选
+- `npm run sync` 跳过 AI 打标
+
+**启用步骤：**
+1. 将 `site.json` 中 `features.aiTagging` 设为 `true`
+2. 在 `.env` 中配置 AI 提供商（参考 `.env.example`）
+3. 运行 `npm run sync`（会自动生成 `themes.json` 并打标）
+
+> 注意：`src/data/themes.json` 默认是空数组 `[]`，启用 AI 功能后会被自动填充。
 
 ### 标签规范化
 
@@ -88,6 +113,7 @@ GitHub Actions 每天运行一次同步任务：
 
 ## 常见修改范式
 
+- **启用 AI 标签/主题功能**：将 `site.json` 中 `features.aiTagging` 设为 `true`，并配置 `.env` 中的 AI 提供商
 - **更换播客**：修改 `site.json` 中 `podcast.rssUrl` 与各平台链接
 - **改品牌/文案**：修改 `site.json` 的 `brand`、`hero`、`about`、`footer`
 - **改成员信息**：修改 `site.json` 的 `about.members`

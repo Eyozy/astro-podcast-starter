@@ -23,3 +23,12 @@ export function getRssUrl() {
   }
   return config.podcast.rssUrl;
 }
+
+/**
+ * 检查 AI 标签/主题功能是否启用
+ * @returns {boolean} 是否启用 AI 功能
+ */
+export function isAiEnabled() {
+  const config = loadSiteConfig();
+  return config?.features?.aiTagging === true;
+}
