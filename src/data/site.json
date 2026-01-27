@@ -1,5 +1,8 @@
 {
   "$schema": "./site.schema.json",
+  "features": {
+    "aiTagging": false
+  },
   "brand": {
     "name": "贤者时间",
     "establishedYear": 2019,

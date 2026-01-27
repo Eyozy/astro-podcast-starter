@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { askAI } from "./ai-client.js";
+import { isAiEnabled } from "./site-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -152,6 +153,13 @@ Return JSON:
 }
 
 async function tagEpisodes() {
+  // 检查 AI 功能是否启用
+  if (!isAiEnabled()) {
+    console.log("❌ AI 标签/主题功能未启用（features.aiTagging = false）");
+    console.log("   如需使用此功能，请在 site.json 中设置 features.aiTagging: true");
+    process.exit(1);
+  }
+
   const themes = readJson(THEMES_PATH, "Themes");
   const taxonomy = readJson(TAG_TAXONOMY_PATH, "Tag taxonomy");
   const episodes = readJson(EPISODES_PATH, "Episodes");

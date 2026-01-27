@@ -1,4 +1,5 @@
 import { askAI, getActiveAiInfo } from "./ai-client.js";
+import { isAiEnabled } from "./site-config.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -18,6 +19,13 @@ async function readEpisodes() {
 }
 
 async function analyzeThemes() {
+  // 检查 AI 功能是否启用
+  if (!isAiEnabled()) {
+    console.log("❌ AI 标签/主题功能未启用（features.aiTagging = false）");
+    console.log("   如需使用此功能，请在 site.json 中设置 features.aiTagging: true");
+    process.exit(1);
+  }
+
   console.log("Reading episodes...");
   try {
     const episodes = await readEpisodes();

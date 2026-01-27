@@ -10,7 +10,7 @@
 ## 功能亮点
 
 - **自动同步** - 一键从小宇宙 RSS 获取最新节目
-- **AI 智能管理** - 自动为节目生成主题分类和标签
+- **AI 智能管理**（可选） - 自动为节目生成主题分类和标签，通过配置开关控制
 - **全文搜索** - 基于 Pagefind 的快速站内搜索
 - **全局播放器** - 吸底播放器，支持后台播放
 - **复古温馨风格** - 精心设计的视觉体验
@@ -20,6 +20,7 @@
 
 站点内容统一配置在 `src/data/site.json`，包括：
 
+- **功能开关** - `features.aiTagging`：是否启用 AI 标签/主题功能（默认关闭）
 - 品牌名/描述/OG 图
 - RSS 与平台订阅链接
 - 首页文案与按钮
@@ -58,10 +59,18 @@ npm install
 
 ### 第四步：配置环境变量（可选）
 
-如果你需要使用 AI 智能打标功能，需要配置 AI 提供商的环境变量（`AI_PROVIDER` + 对应的 `*_API_KEY/_API_URL/_MODEL`）。
+如果你需要使用 AI 智能打标功能：
 
-1. 在项目根目录创建 `.env` 文件
-2. 添加以下内容：
+1. 首先在 `src/data/site.json` 中启用 AI 功能：
+   ```json
+   {
+     "features": {
+       "aiTagging": true
+     }
+   }
+   ```
+
+2. 在项目根目录创建 `.env` 文件，添加以下内容：
 
 ```bash
 # 选择提供商：deepseek | openrouter | xai | zhipu（必填）
@@ -73,7 +82,7 @@ DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
 DEEPSEEK_MODEL=deepseek-chat
 ```
 
-> 没有 API 密钥？没关系，网站的基础功能（同步、构建、预览）都可以正常使用，只是无法使用 AI 自动打标功能。
+> **不需要 AI 功能？** 保持 `features.aiTagging: false`（默认值）即可，无需配置任何环境变量。网站的基础功能（同步、构建、预览）都能正常使用。
 >
 > 其他提供商（OpenRouter / xAI / 智谱）的环境变量示例请参考 `.env.example`。
 

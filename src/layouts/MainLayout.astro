@@ -11,8 +11,14 @@ interface Props {
 }
 
 const { title } = Astro.props;
-const { brand, assets, navigation, footer } = site;
+const { brand, assets, navigation, footer, features } = site;
 const meta = brand.meta;
+
+// 根据 AI 功能开关过滤导航项
+const aiEnabled = features?.aiTagging === true;
+const filteredNavigation = aiEnabled
+  ? navigation
+  : navigation.filter((item) => item.href !== "/themes");
 ---
 
 <!doctype html>
@@ -95,7 +101,7 @@ const meta = brand.meta;
         <!-- 桌面端导航 -->
         <ul class="hidden md:flex space-x-10 font-serif font-bold text-sm tracking-widest uppercase">
           {
-            navigation.map((item) => (
+            filteredNavigation.map((item) => (
               <li>
                 <a
                   href={item.href}
@@ -155,7 +161,7 @@ const meta = brand.meta;
         <nav class="p-6">
           <ul class="flex flex-col space-y-2 font-serif font-bold text-base tracking-widest uppercase">
             {
-              navigation.map((item) => (
+              filteredNavigation.map((item) => (
                 <li>
                   <a
                     href={item.href}

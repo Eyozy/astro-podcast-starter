@@ -22,6 +22,18 @@
     "$schema": {
       "type": "string"
     },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "功能开关配置",
+      "properties": {
+        "aiTagging": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否启用 AI 标签/主题功能。启用后需配置环境变量中的 AI 提供商。"
+        }
+      }
+    },
     "brand": {
       "type": "object",
       "additionalProperties": false,

@@ -6,13 +6,18 @@ import themes from "../data/themes.json";
 // 页面文案在 site.json 的 pages.episodes 中配置。
 import site from "../data/site.json";
 
+// AI 功能开关
+const aiEnabled = site.features?.aiTagging === true;
+
 // 获取所有年份
 const years = [
   ...new Set(episodes.map((ep) => new Date(ep.pubDate).getFullYear())),
 ].sort((a, b) => b - a);
 
-// 获取所有标签并去重
-const allTags = [...new Set(episodes.flatMap((ep) => ep.tags || []))].sort();
+// 获取所有标签并去重（仅在 AI 功能开启时使用）
+const allTags = aiEnabled
+  ? [...new Set(episodes.flatMap((ep) => ep.tags || []))].sort()
+  : [];
 ---
 
 <MainLayout title={site.pages.episodes.title}>
@@ -183,7 +188,8 @@ const allTags = [...new Set(episodes.flatMap((ep) => ep.tags || []))].sort();
         </div>
       </div>
 
-      <!-- 按标签筛选 -->
+      {/* 按标签筛选 - 仅在 AI 功能开启时显示 */}
+      {aiEnabled && (
       <div
         class="bg-white/50 lg:bg-transparent p-4 md:p-6 lg:p-0 border border-[#2d2a26]/5 lg:border-none rounded-2xl shadow-sm lg:shadow-none backdrop-blur-md lg:backdrop-blur-none lg:pt-8 lg:border-t lg:border-[#2d2a26]/5"
       >
@@ -244,6 +250,7 @@ const allTags = [...new Set(episodes.flatMap((ep) => ep.tags || []))].sort();
           )}
         </div>
       </div>
+      )}
     </aside>
 
     <!-- 节目列表 -->

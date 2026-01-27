@@ -4,10 +4,11 @@
 
 项目已完成模板化改造，核心能力稳定：
 - RSS 同步、全局播放器、全文搜索（Pagefind）
-- AI 智能内容管理（主题生成、自动打标、标签规范化）
+- AI 智能内容管理（可选，通过 `features.aiTagging` 开关控制）
 - 站点文案与链接集中配置（`src/data/site.json`，带 JSON Schema 校验）
 - API 端点支持动态 RSS 获取
 - RSS 变更自动检测，切换播客时自动清理旧数据
+- 自定义 404 页面
 
 ---
 
@@ -48,8 +49,9 @@ astro-podcast-starter/
 │   │   ├── index.astro        # 首页
 │   │   ├── episodes.astro     # 节目列表
 │   │   ├── episodes/[id].astro # 节目详情
-│   │   ├── themes.astro       # 主题探索
+│   │   ├── themes.astro       # 主题探索（需启用 AI 功能）
 │   │   ├── about.astro        # 关于页面
+│   │   ├── 404.astro          # 404 页面
 │   │   └── api/               # API 端点
 │   │       ├── episodes.json.ts # 动态获取节目数据
 │   │       └── rss.ts         # RSS 代理端点
@@ -93,10 +95,10 @@ astro-podcast-starter/
 ### 数据文件
 | 文件 | 内容 | 更新方式 |
 |------|------|----------|
-| `src/data/site.json` | 站点配置入口 | 手动维护 |
+| `src/data/site.json` | 站点配置入口（含 `features.aiTagging` 开关） | 手动维护 |
 | `src/data/site.schema.json` | site.json 的 JSON Schema | 手动维护 |
 | `src/data/episodes.json` | 所有节目元数据 | `npm run sync` |
-| `src/data/themes.json` | 5 个主题分类 | `npm run analyze` |
+| `src/data/themes.json` | 主题分类（默认空数组，启用 AI 后自动填充） | `npm run analyze` |
 | `src/data/tag-taxonomy.json` | 标签分类法（含别名映射） | 手动维护 |
 
 ---
@@ -135,10 +137,12 @@ Astro 静态页面 + Pagefind 搜索索引
 
 ## 环境变量
 
+环境变量仅在启用 AI 功能时需要配置（`features.aiTagging: true`）。
+
 在 `.env` 文件中配置：
 
 ```bash
-# 选择使用哪个 AI 提供商（必填）
+# 选择使用哪个 AI 提供商（启用 AI 功能时必填）
 AI_PROVIDER=deepseek  # deepseek | openrouter | xai | zhipu
 
 # DeepSeek
@@ -148,6 +152,8 @@ DEEPSEEK_MODEL=deepseek-chat
 
 # 其他提供商（OpenRouter / xAI / 智谱）请参考 `.env.example`
 ```
+
+> 如果 `features.aiTagging: false`（默认），则无需配置任何环境变量。
 
 如果使用 GitHub Actions 定时同步，请将这些变量配置在 GitHub Secrets。
 

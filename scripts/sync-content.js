@@ -6,7 +6,7 @@ import readline from "readline";
 import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
 import DOMPurify from "isomorphic-dompurify";
-import { getRssUrl, loadSiteConfig } from "./site-config.js";
+import { getRssUrl, loadSiteConfig, isAiEnabled } from "./site-config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +27,13 @@ if (!TRANSCRIPT_PLACEHOLDER) {
 
 // ============ 环境变量检测 ============
 function checkEnvStatus() {
+  // 首先检查配置开关
+  if (!isAiEnabled()) {
+    console.log("ℹ️  AI 标签/主题功能未启用（features.aiTagging = false）");
+    console.log("   如需启用，请在 site.json 中设置 features.aiTagging: true 并配置环境变量\n");
+    return { hasEnv: false, hasApiKey: false, aiDisabled: true };
+  }
+
   const envExists = fs.existsSync(ENV_PATH);
 
   const providerRaw = process.env.AI_PROVIDER;
